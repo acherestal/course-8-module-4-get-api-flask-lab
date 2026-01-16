@@ -3,23 +3,35 @@ from data import products
 
 app = Flask(__name__)
 
-# TODO: Implement homepage route that returns a welcome message
-
-@app.route("/")
+@app.route("/", methods=["GET"])
 def home():
-    pass  # TODO: Return a welcome message
+    """Homepage route: simple welcome message."""
+    return jsonify({"message": "Welcome to the Product Catalog API!"}), 200
 
-# TODO: Implement GET /products route that returns all products or filters by category
 
-@app.route("/products")
+@app.route("/products", methods=["GET"])
 def get_products():
-    pass  # TODO: Return all products or filter by ?category=
+    """Return all products, optionally filtered by category via ?category=."""
+    category = request.args.get("category")
+    if category:
+        category_norm = category.strip().lower()
+        filtered = [
+            p for p in products
+            if str(p.get("category", "")).lower() == category_norm
+        ]
+        return jsonify(filtered), 200
 
-# TODO: Implement GET /products/<id> route that returns a specific product by ID or 404
+    return jsonify(products), 200
 
-@app.route("/products/<int:id>")
-def get_product_by_id(id):
-    pass  # TODO: Return product by ID or 404
+
+@app.route("/products/<int:id>", methods=["GET"])
+def get_product_by_id(id: int):
+    """Return a single product by id, or a 404 JSON error."""
+    product = next((p for p in products if p.get("id") == id), None)
+    if product is None:
+        return jsonify({"error": "Product not found"}), 404
+    return jsonify(product), 200
+
 
 if __name__ == "__main__":
     app.run(debug=True)
